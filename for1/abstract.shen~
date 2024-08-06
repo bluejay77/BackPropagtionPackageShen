@@ -1,0 +1,54 @@
+\*
+
+The perceptron as a Shen abstract datatype
+
+Dr AJY 2019-06-11
+
+
+*\
+
+
+(datatype pctron
+ID : number;
+Doc : string;
+Layer: number;
+Pos: number;
+INP: (list (list Z));
+WTS: (list (list Z));
+WBias: number;
+OUT: (list Z);
+NeuronName : symbol;
+===========================================
+NeuronName : pctron;
+)
+
+
+\\ The operations w/ a pctron?
+
+
+
+
+\*
+
+The neural net as a Shen abstract datatype
+
+Dr AJY 2019-06-11
+
+
+*\
+
+(datatype nn
+ANN : (vector (vector pctron));
+NNDoc : string;
+NLayers: number;
+NPcInLayer: number;
+===========================================
+ANN : nn;
+)
+
+
+\\ The operations w/ a nn?
+
+\\ A symbol with several properties?
+
+
