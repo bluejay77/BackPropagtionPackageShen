@@ -1,0 +1,15 @@
+\*
+
+Dr AJY 2019-01-28 --
+
+*\
+
+
+(register-module [[name: maths]
+                  [author: "Willi O Riha, OS Shen"]
+                  [license: "commercial"]
+                  [desc: "Module implementing the maths"]
+                  [load: "maths-lib1.shen"]])
+
+
+

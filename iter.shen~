@@ -1,0 +1,300 @@
+\*
+
+Dr AJY 2018-01-28--
+
+*\
+
+\\ Train the multilevel perceptron net
+\\ TODO: Print and do with pen and paper!!
+
+\*
+
+---Algorithm:
+
+(Haykin, 1999) pp. 173--175.
+
+Initialization.  Pick synaptic weights and thresholds from a uniform
+distribution, whose mean == 0, and whose variance is given as a
+function parameter.  See (Haykin, 1999) p. 174.
+
+Iterate UNTIL (stopping criterion):
+
+    Present (assign) the training examples.  For this epoch.  The
+    order of presentation of training examples should be randomized from 
+    epoch to epoch.  Shuffle the examples.
+
+    FOR (each sample in the shuffled examples):
+        Forward Computation.  Self explanatory.
+        Backward Computation.  Compute the betas, deltas, sumDeltas.
+            Update the ANN.
+    END FOR
+
+END UNTIL
+
+Four epoch iteration stopping criteria:
+
+1.  Number of epochs given, e. g. (bprop 200)
+
+2.  (Winston, 1992) <0.1 or >0.9 criterion, e. g. (cbprop)
+
+3.  (Haykin, 1999) p. 173 criterion -- Euclidean norm of the gradient
+of the error surface is sufficiently small, and is given as a function
+argument (h1bprop 0.01)
+
+4.  (Haykin, 1999) p. 173 criterion 2: absolute rate of change in the
+average squared error per epoch is sufficiently small, is given as a
+function parameter, (h2bprop 0.001)
+
+Use the sequential mode: Update the weights after the presentation of
+each training example.  (Haykin, 1999) p. 171-172.
+
+Apply the (Anastasiadis, 2005) resilient backpropagation algorithm.
+
+*\
+
+
+\\ High-level function to carry out the actual ANN training iteration
+
+(define iter
+    Samples C ->
+        (let
+	    S (randomize-list Samples) \\ Shuffle the *Samples*
+	    I (iter-h S) \\ One epoch
+	    (if (not (C)) \\ Stopping criterion?
+		(iter Samples C) \\ Continue
+		[]))) \\ Stop iteration, result in the (value *ANN*)
+
+
+
+\\ One iteration round: 1 epoch are all *Samples* in a random order
+
+(define iter-h
+    Samples ->
+    (do 
+        (zero-weight-changes) \\ Zero the padel fields before epoch
+        (bprop-1-epoch Samples) \\ One round 4 all *Samples*
+        (change-weights)      \\ Alter weights in *ANN* after epoch
+	[]))
+
+\*
+
+Another version of the interface: Discontinue iteration when
+convergence is OK, after the Winston criterion.
+
+*\
+
+
+(define cbprop
+    {  --> (list A) }
+    -> [] where (convergence-ok)
+    -> 
+        (do
+            (bprop-iterate) \\ One iteration epoch
+            (cbprop) \\ Recurse
+	    []) \\ end (do ...)
+) \\ end function
+
+
+
+(define convergence-ok
+    {  --> boolean }
+    ->
+        (for-all-vector (function sample-ok) (value *ANN*)))
+
+
+\\ (value *ANN*) is a vector of strata
+\\ A stratum is a list of pctrons
+\\ TODO: Check all this!!!!
+
+\\ sample-ok: (for-all (function pctron-ok) pctron-list?)
+\\ For every pctron, compare the actual and the desired (sample)
+\\ outputs, according to the Winston criterion.
+
+
+
+(define sample-ok
+    { (list (list number)) --> boolean }
+    Sample ->
+        (let
+	    Des \\ The desired result
+	        (hd (tl Sample))
+	    Com \\ The computed result from the ANN
+	        (ann-outputs
+		    (<-vector (value *ANN*) \\ The output layer
+		              (last-neuron-layer (value *ANN*))))
+	    (winston-compare Des Com)))
+
+
+(define ann-outputs
+    { (list pctron) --> (list number) }
+    [] -> []
+    [ H | T ] ->
+        (append
+	    [(pctron-pout H)]
+	    (ann-outputs T)))
+
+
+(define winston-compare
+    { (list number) --> (list number) --> boolean }
+    D C -> (winston-compare-h (merge D C)))
+
+
+(define winston-compare-h
+    { (list (list number)) --> boolean }
+    [] -> true
+    [[ D1 C1 ] | T ] ->
+        (and (winston-num D1 C1)
+	     (winston-compare-h T)))
+
+
+(define winston-num
+    { number -> number --> boolean }
+    D1 C1 ->
+        (if (= D1 1.0)
+	    (>= C1 0.9)
+	    (if (= D1 0.0)
+	        (<= C1 0.1)
+		(error "winston-num: number(s) wrong!"))))
+
+
+\*
+
+Dr AJY 2018-01-03
+
+*\
+
+
+\\ Zero all of the padel fields
+\\ Needs to be done before the epoch
+
+
+(define zero-weight-changes
+    { --> (list A) }
+    ->
+        (do
+	    (zero-weight-changes-aux
+	        (value *oblist*)
+		1
+		(last-oblist-index (value *oblist*)))
+	    []))
+
+
+
+(define zero-weight-changes-aux
+    { (vector pctron) --> number --> number --> (list A) }
+    V Counter Hi -> [] where (> Counter Hi)
+    V Counter Hi -> (zero-weight-changes-aux V (+ 1 Counter) Hi)
+                          where (= (<-vector V Counter)
+                                (value *EMPTY-ELEM*))
+    V Counter Hi -> (do
+                        (zero-weight-changes-pctron (<-vector V Counter))
+		        (zero-weight-changes-aux V (+ 1 Counter) Hi)
+		        []))
+
+
+(define zero-weight-changes-pctron
+    { pctron --> pctron }
+    N ->
+        (let
+	    NN (pctron-padel-> N (novel-zero-vector))
+	    NN))
+
+
+
+\\ See (Winston, 1992), the formula on Page 457:
+\\ In the end of an iteration round for the entire set of samples,
+\\ alter the weights by adding the padel fields into the weights
+\\ of the network
+
+
+(define change-weights
+    { --> (list A) }
+    -> (do (change-weights-aux (value *oblist*)) 1))
+
+
+
+(define change-weights-aux
+    { (vector pctron) --> number --> (list A) }
+    V N -> [] where (> N (value *MAXNEURONS*))
+    V N -> (change-weights-aux V (+ 1 N))
+               where (= (<-vector V N) (value *EMPTY-ELEM*)) \\ Empty slot
+    V N -> 
+        (do
+            (change-weights-pctron (<-vector V N) 1)
+            (change-weights-aux V (+ 1 N)) \\ Recurse
+            []))
+
+
+
+(define change-weights-pctron
+    { pctron --> number --> pctron }
+    P Counter -> P where (> Counter (value *MAXNEURONS*))
+    P Counter ->
+        (change-weights-pctron P (+ 1 Counter))
+	    where (= (<-vector (pctron-pwts P) Counter)
+	             (value *EMPTY*))
+    P Counter ->
+        (let
+	    PWTS (pctron-pwts P) \\ Weights
+	    PADEL (pctron-padel P) \\ Accumulated Deltas
+	    W1 (<-vector PWTS Counter) \\ Old Weight
+	    A1 (<-vector PADEL Counter) \\ Corresponding padel
+	    NW (+ W1 A1) \\ New Weight
+	    _ (vector-> PWTS NW Counter) \\ Modify the data structure
+	    _ (pctron-pwts-> P PWTS) \\ Assign it to the neuron
+	    (change-weights-pctron P (+ 1 Counter))))
+
+
+
+
+
+\*
+
+Various modifications:
+
+* http://ieeexplore.ieee.org/document/1007668/
+
+* The Simon Haykin momentum constant, (Haykin, 1999)
+
+* The ICNN 1994 improvement
+
+* The resilient backproparation, the Anastasiadis paper;
+  
+* The multibackpropagation, the Lopes-Ribeira paper;
+
+*\
+
+
+\\ In this program, the author has chosen the Anastasiadis resilient
+\\ backpropagation.
+
+
+(define bprop-1-epoch
+  { (list (list (list number))) --> (list A) }
+  [] -> [] \\ Samples all processed?
+  [ H | T ] ->
+    (let
+       Vec (fill-ins (hd H)) 
+       Ign (assign-inputs H Vec) \\ Take current sample into the *ANN*
+       Ign (launch-ann)          \\ Fire the entire net
+       Ign (beta-output H)       \\ Compute the output layer beta values
+       Ign (beta-layers)         \\ Compute the rest of the betas, backw/
+       Ign (deltas-1st H)        \\ Deltas, Winston formula, for 1st stratum
+       Ign (deltas-2nd)          \\ The deltas for the higher strata
+       Ign (add-up-weight-changes) \\ Add weight changes to accumulated deltas
+       Ign (bprop-1-epoch T)     \\ Recurse for the rest of the samples
+       []) \\ end (do...)
+) \\ end function
+
+
+
+(define last
+    { (list Z) --> Z }
+    L -> (head (reverse L)))
+
+
+(define butlast \\ fuzzy wozzy's flash of intellect
+    { (list A) --> (list A) }
+    [] -> []
+    L -> (reverse (tail (reverse L))))
+

@@ -1,0 +1,117 @@
+\*
+
+Dr AJY 2018-01-03
+
+Handle the layers from Layer 2 forwards.  The difference is: The
+inputs are from other neurons, not from the entire net's input list
+
+*\
+
+
+(define deltas-2nd
+    -> 
+        (let
+            Strata (value *ANN*) \\ the neuron strata vector of vectors
+            (iterate-strata Strata
+	                    2 \\ From Layer #2 upwards
+			    (value *last-layer*)))) \\ up to the last layer
+
+
+
+(define iterate-strata
+    V Counter Hi -> [] where (> Counter Hi) \\ All pctron strata processed?
+    V Counter Hi ->
+        (do
+            (iterate-n-stratum-h
+	        1
+	        (<-vector V Counter)) \\ Process this stratum of neurons
+            (iterate-strata V (+ 1 Counter) Hi)  \\ Recurse
+            []))
+
+
+(define iterate-n-stratum-h
+    Indx V -> [] where (> Indx (value *MAXINLAYER*))
+    Indx V ->
+        (do
+            (deltas-n (<-vector V Indx)) \\ Compute deltas 4 this neuron
+            (iterate-n-stratum-h (+ 1 Indx) V) \\ Recurse
+            []))
+
+
+\*
+
+Reiteration: (repeat, repetition est mater studiorum)
+
+See the formula in (Winston, 1992) on Page 457.
+
+The weight change formula is:
+
+delta-weight(i,j) = r * o(i) * o(j) * (1 - o(j)) * beta(j)
+
+r        ==df the (value *r*) parameter
+o(i)     ==df the output of Neuron #i, the outputting neuron
+              into this one, the input #i of this neuron #j
+              where Neuron #j is the argument neuron
+o(j)     ==df the output of this neuron, Neuron #j
+beta(j)  ==df the beta of this neuron, Neuron #j
+weight(i,j) ==df the weight from Neuron #i into this neuron, #j
+
+The bias shall be handled separately.
+
+This one is Neuron #j.  Get its inputs.  For each input neuron #i,
+count the change to the weight, delta-weight above.
+
+*\
+
+
+(define deltas-n
+    P -> 
+        (let
+	    I (getp P pins) \\ the inputs #i into this one, which is #j
+	    In (getp P pins-n) \\ the input numbers vector
+	    O (getp P pout) \\ the number o(j)
+	    B (getp P pb) \\ beta(j)
+	    Ign (deltas-n-aux
+	            P \\ The perceptron in question
+		    I \\ Inputs neurons vector
+		    In \\ Inputs numbers
+		    O
+		    (value *r*)
+		    B
+		    1) \\ Index into the inputs #i vector
+	    []))
+
+
+
+(define deltas-n-aux
+    P I In O R B Counter -> []
+        where (> Counter (value *MAXVEC*)) \\ all inputs done
+    P I In O R B Counter ->
+        (deltas-n-aux
+	    P
+	    I
+	    In
+	    O
+	    R
+	    B
+	    (+ 1 Counter)) where (= (value *EMPTY*)
+	                            (<-vector I Counter))
+    P I In O R B Counter ->
+        (let
+	    DW (* R \\ Calculate change, id est delta, to weight
+	          (<-vector In Counter) \\ the input number, id est o(i)
+		  O \\ o(j)
+		  (- 1.0 O) \\ from Winston
+		  B) \\ beta(j)
+	    \\ Assign delta to delta-weight of neuron
+            NDV (vector-> (getp P pdel) Counter DW) \\ New deltas vec
+	    Ign (putp P NDV pdel) \\ Assign new deltas vec
+	    (deltas-n-aux \\ Recurse, to the next slot of inputs
+	        P
+		I
+		In
+		O
+		R
+		B
+		(+ 1 Counter))))
+

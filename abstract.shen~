@@ -1,0 +1,41 @@
+\*
+
+The perceptron as a Shen absttract datatype
+
+Dr AJY 2019-06-11
+
+
+*\
+
+
+
+
+(datatype pctron
+
+NN : string;
+Doc : string;
+Ins : (list (list any)); \\ [ [ Input Where-From ] [ Input Where-From ]...]
+Wts : (list (list any)); \\ [ [ Weight Where-From ] [ Weight Where-From ]..]
+Bias: number;                   \\ the weight of the bias of this neuron
+Del : (list (list any)); \\ [ [ Delta-Weight Where-From ] ...]
+SDel: (list (list any)); \\ [ [ Accumulated-Del Where-From ] ...]
+Act : number;
+Out : number; \\ computed output number
+B : number; \\ the error backpropagation beta for this neuron
+Outs : (list string); \\ list of output neuron names to send to
+===========================================
+[
+    NN
+    Doc
+    Ins
+    Wts
+    Bias
+    Del
+    SDel
+    Act
+    Out
+    B
+    Outs] : pctron;
+
+)
+

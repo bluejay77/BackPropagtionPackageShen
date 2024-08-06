@@ -1,0 +1,392 @@
+\*
+
+Dr AJY 2018-01-28
+
+*\
+
+\*
+
+Train the multilevel perceptron net: Call
+
+(bprop 300)
+
+where 300 is the number of training epochs and the ANN levels have
+been stored in the variable *ANN*, and the training items have been
+stored in the global variable *Samples* The selfsame algorithm, the
+error backpropagation algorithm, is used to train both multilevel
+perceptrons and backpropagation ANNs: Namely, those two terms refer to
+the same ANN objects.  See (Haykin, 1999).  Another way to call to the
+backpropagation algorithm:
+
+(cbprop)
+
+*\
+
+
+(define bprop
+  { number --> (list A) }
+  N ->
+        (do (bprop-aux N 1) []))
+
+
+
+(define bprop-aux
+    { number --> number --> (list A) }
+    N Counter -> [] where (> Counter N)
+    N Counter ->
+        (do
+            (bprop-iterate)
+            (bprop-aux N (+ Counter 1)) \\ Recurse
+	    []) \\ end (do ...)
+) \\ end function
+
+
+
+\\ One iteration round: 1 epoch are all *Samples*
+
+(define bprop-iterate
+    { --> (list A) }
+    ->
+    (do 
+        (zero-weight-changes) \\ Zero the padel fields before epoch
+        (bprop-1-epoch (value *Samples*)) \\ One round 4 all *Samples*
+        (change-weights)      \\ Alter weights in *ANN* after epoch
+	[]))
+
+\*
+
+Another version of the interface: Discontinue iteration when
+convergence is OK, after the Winston criterion.
+
+*\
+
+
+(define cbprop
+    {  --> (list A) }
+    -> [] where (convergence-ok)
+    -> 
+        (do
+            (bprop-iterate) \\ One iteration epoch
+            (cbprop) \\ Recurse
+	    []) \\ end (do ...)
+) \\ end function
+
+
+
+(define convergence-ok
+    {  --> boolean }
+    ->
+        (for-all-vector (function sample-ok) (value *ANN*)))
+
+
+\\ (value *ANN*) is a vector of strata
+\\ A stratum is a list of pctrons
+\\ TODO: Check all this!!!!
+
+\\ sample-ok: (for-all (function pctron-ok) pctron-list?)
+\\ For every pctron, compare the actual and the desired (sample)
+\\ outputs, according to the Winston criterion.
+
+
+
+(define sample-ok
+    { (list (list number)) --> boolean }
+    Sample ->
+        (let
+	    Des \\ The desired result
+	        (hd (tl Sample))
+	    Com \\ The computed result from the ANN
+	        (ann-outputs
+		    (<-vector (value *ANN*) \\ The output layer
+		              (last-neuron-layer (value *ANN*))))
+	    (winston-compare Des Com)))
+
+
+(define ann-outputs
+    { (list pctron) --> (list number) }
+    [] -> []
+    [ H | T ] ->
+        (append
+	    [(pctron-pout H)]
+	    (ann-outputs T)))
+
+
+(define winston-compare
+    { (list number) --> (list number) --> boolean }
+    D C -> (winston-compare-h (merge D C)))
+
+
+(define winston-compare-h
+    { (list (list number)) --> boolean }
+    [] -> true
+    [[ D1 C1 ] | T ] ->
+        (and (winston-num D1 C1)
+	     (winston-compare-h T)))
+
+
+(define winston-num
+    { number -> number --> boolean }
+    D1 C1 ->
+        (if (= D1 1.0)
+	    (>= C1 0.9)
+	    (if (= D1 0.0)
+	        (<= C1 0.1)
+		(error "winston-num: number(s) wrong!"))))
+
+
+\*
+
+Dr AJY 2018-01-03
+
+*\
+
+
+\\ Zero all of the padel fields
+\\ Needs to be done before the epoch
+
+
+(define zero-weight-changes
+    { --> (list A) }
+    ->
+        (do
+	    (zero-weight-changes-aux
+	        (value *oblist*)
+		1
+		(last-oblist-index (value *oblist*)))
+	    []))
+
+
+
+(define zero-weight-changes-aux
+    { (vector pctron) --> number --> number --> (list A) }
+    V Counter Hi -> [] where (> Counter Hi)
+    V Counter Hi -> (zero-weight-changes-aux V (+ 1 Counter) Hi)
+                          where (= (<-vector V Counter)
+                                (value *EMPTY-ELEM*))
+    V Counter Hi -> (do
+                        (zero-weight-changes-pctron (<-vector V Counter))
+		        (zero-weight-changes-aux V (+ 1 Counter) Hi)
+		        []))
+
+
+(define zero-weight-changes-pctron
+    { pctron --> pctron }
+    N ->
+        (let
+	    NN (pctron-padel-> N (novel-zero-vector))
+	    NN))
+
+
+
+\\ See (Winston, 1992), the formula on Page 457:
+\\ In the end of an iteration round for the entire set of samples,
+\\ alter the weights by adding the padel fields into the weights
+\\ of the network
+
+
+(define change-weights
+    { --> (list A) }
+    -> (do (change-weights-aux (value *oblist*)) 1))
+
+
+
+(define change-weights-aux
+    { (vector pctron) --> number --> (list A) }
+    V N -> [] where (> N (value *MAXNEURONS*))
+    V N -> (change-weights-aux V (+ 1 N))
+               where (= (<-vector V N) (value *EMPTY-ELEM*)) \\ Empty slot
+    V N -> 
+        (do
+            (change-weights-pctron (<-vector V N) 1)
+            (change-weights-aux V (+ 1 N)) \\ Recurse
+            []))
+
+
+
+(define change-weights-pctron
+    { pctron --> number --> pctron }
+    P Counter -> P where (> Counter (value *MAXNEURONS*))
+    P Counter ->
+        (change-weights-pctron P (+ 1 Counter))
+	    where (= (<-vector (pctron-pwts P) Counter)
+	             (value *EMPTY*))
+    P Counter ->
+        (let
+	    PWTS (pctron-pwts P) \\ Weights
+	    PADEL (pctron-padel P) \\ Accumulated Deltas
+	    W1 (<-vector PWTS Counter) \\ Old Weight
+	    A1 (<-vector PADEL Counter) \\ Corresponding padel
+	    NW (+ W1 A1) \\ New Weight
+	    _ (vector-> PWTS NW Counter) \\ Modify the data structure
+	    _ (pctron-pwts-> P PWTS) \\ Assign it to the neuron
+	    (change-weights-pctron P (+ 1 Counter))))
+
+
+
+
+
+\*
+
+
+The following is the heart and soul of the program-- One
+backpropagation iteration step.  The below function has been created
+after Winston: ARTIFICIAL INTELLIGENCE, 3rd Edition, the
+Back-Propagation Procedure on Page 457 (Winston, 1992).
+
+TODO: This one according to the (Haykin, 1999) book!!!!  From the
+lbp.shen source file, copy here!!!!
+
+
+The algorithm, literally, from Winston:
+
+UNTIL (performance satisfactory)
+
+    FOR each sample input ==> H
+
+        assign H into the ANN;
+	compute the output, id est launch the ANN;
+	compute the beta values for the output layer;
+	compute the beta values for the (lower) strata;
+	compute the weight changes (deltas) for all weights,
+	    and assign them into the pdel fields;
+
+   For all sample inputs, id est all H <== [ H | T ],
+      sum the pdel fields into the accumulated deltas fields,
+      the padel fields; the padel fields are for each epoch;
+
+    after all H <== [ H | T ] have been seen,
+    add up the weight changes for this training epoch,
+    id est the entire set of samples H, the weight changes are
+    assigned into the padel fields;
+    
+    change the weights, id est add the padel fields into the
+    weights;
+
+continue repeating the epoch until satisfactory;
+
+
+The performance is judged satisfactory, if:
+
+1.  all outputs which are trained 1.0 as the sample value,
+    are computed >0.9 when testing the ANN; and,
+
+2.  all outputs which are trained using 0.0 as the sample value,
+    are computed < 0.1 when testing the ANN.
+
+END.
+
+
+
+
+Various modifications:
+
+* http://ieeexplore.ieee.org/document/1007668/
+
+* The Simon Haykin momentum constant, (Haykin, 1999)
+
+* The ICNN 1994 improvement
+
+* The resilient backproparation, the Anastasiadis paper;
+  
+* The multibackpropagation, the Lopes-Ribeira paper;
+
+
+Two backpropagation functions are provided:
+
+(bprop 3000) \\ How many training epochs are wanted
+
+(cbprop) \\ (Winston, 1992) converging criterion backpropagation (from
+         \\ 0.1 and 0.9 above) 
+
+
+In the (Russell-Norvig, 2010) reference the identical algorithm is
+given, with somewhat different notation.
+
+
+The (Winston, 1992) algorithm given in a more clear notation:
+(Ylikoski, 2018-01-22)
+
+
+UNTIL (performance satisfactory) \\ id est (bprop ..) or (cbprop ..)
+
+  FOR each training epoch, id est, for each set of
+  { H <== Sample == [ H | T] }
+
+  set the padel, id est the accumulated deltas, fields, to 0;
+
+    FOR each sample input ==> H
+
+        convert the sample data inputs into a inputs vector ==> Vec;
+        assign H and Vec into the ANN;
+	compute the output, id est launch the ANN;
+	compute the beta values for the output layer;
+	compute the beta values for the (lower) strata;
+	compute the weight changes (deltas) for all weights,
+	    and assign them into the pdel fields;
+	sum the pdel fields for each individual H into the accumulated
+	    deltas fields, the padel fields; the padel fields are
+	    accumulated with the pdel values for each H;
+    END;
+
+    after all { H <== Sample == [ H | T ] } have been seen, for this
+      epoch, add up the weight changes for this training epoch,
+      id est, add the weight changes which are accumulated
+      into the padel fields, add the padel fields
+      into the weights, for this epoch;
+      
+continue repeating the epochs until satisfactory; \\ bprop or cbprop
+
+
+The (cbprop ..) performance is judged satisfactory, if:
+
+1.  all outputs which are trained 1.0 as the sample value,
+    are computed > 0.9 when testing the ANN; and,
+
+2.  all outputs which are trained using 0.0 as the sample value,
+    are computed < 0.1 when testing the ANN.
+
+END.
+
+
+*\
+
+
+\*
+
+TODO: This one according to the (Haykin, 1999) book!!!!
+From the lbp.shen source file, copy here!!!!
+
+*\
+
+
+
+
+(define bprop-1-epoch
+  { (list (list (list number))) --> (list A) }
+  [] -> [] \\ Samples all processed?
+  [ H | T ] ->
+    (let
+       Vec (fill-ins (hd H)) 
+       Ign (assign-inputs H Vec) \\ Take current sample into the *ANN*
+       Ign (launch-ann)          \\ Fire the entire net
+       Ign (beta-output H)       \\ Compute the output layer beta values
+       Ign (beta-layers)         \\ Compute the rest of the betas, backw/
+       Ign (deltas-1st H)        \\ Deltas, Winston formula, for 1st stratum
+       Ign (deltas-2nd)          \\ The deltas for the higher strata
+       Ign (add-up-weight-changes) \\ Add weight changes to accumulated deltas
+       Ign (bprop-1-epoch T)     \\ Recurse for the rest of the samples
+       []) \\ end (do...)
+) \\ end function
+
+
+
+(define last
+    { (list Z) --> Z }
+    L -> (head (reverse L)))
+
+
+(define butlast \\ fuzzy wozzy's flash of intellect
+    { (list A) --> (list A) }
+    [] -> []
+    L -> (reverse (tail (reverse L))))
+

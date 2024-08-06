@@ -1,0 +1,14 @@
+Hi,
+
+I have been working with the backpropagation program.  Actually, I
+have three ANN applications in mind: the backpropagation; the
+Hopfield; and the Support Vector Machines.  These ones are the truly
+useful ones.
+
+I attach the user application data file concerning how I have been
+planning for the backpropagation program to be used.
+
+We could give the program to the user as the above mentioned binary
+file, and have the user simply to Shen load the bapp.shen file as:
+(load "bapp.shen") into the binary LISP image file created above.
+

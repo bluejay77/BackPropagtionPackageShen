@@ -1,0 +1,39 @@
+Hello Mark,
+
+The first working commercial ANN program is approaching completion,
+after a significant amount of work.
+
+The program will run, but it does not converge well.  There is a bug
+in the mathematics, which error I will have to detect and correct.
+
+Do
+
+(load "lbp.shen")
+
+and then see the training material:
+
+(show-samples)
+
+and see how the non-trained net behaves:
+
+(dsp)
+
+Then do
+
+(time (train-n 1000))
+
+with this 64bit laptop 1000 ANN training rounds will take some 4
+seconds.
+
+After this do again
+
+(dsp)
+
+You can see that the ANN backpropagation iteration did not converge:
+An error in the formulas will still have to be corrected by me.
+
+There is a design decision here.  This program is the (Winston, 1992)
+algorithm.  Can we sell it (corrected) as such?  Will I have to
+program the Anastasiadis resilient backpropagation?  I will have to
+consider that one.
+

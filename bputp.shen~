@@ -1,0 +1,58 @@
+\*
+
+Define putp and getp with the underlying LISP property functionality
+
+AJY 2018-05-13
+
+*\
+
+\\ TODO: Change this one to the pure Shen put/get
+\\ For portability.
+
+
+\*
+
+Use the properties of the underlying LISP, for some technical
+reasons:
+
+==============================
+
+;;; AJY 2018-05-11
+
+(defun putp (obj val prop) ; Property name last, as in PUTPROP
+  (setf (get obj prop) val))
+
+
+(defun getp (obj prop)
+  (get obj prop))
+
+==============================
+
+Here are the previous definitions of the putp and getp,
+for the historical comment reasons:
+
+(define putp
+    { symbol --> symbol --> unit --> unit }
+    Obj Val Prop ->
+        (lisp.setf (lisp.get Obj Prop) Val))
+
+(define getp
+    { symbol --> symbol --> unit }
+    Obj Prop ->
+        (lisp.get Obj Prop))
+
+
+*\
+
+\\ The newer defs of putp and getp, changed for compatibility reasons:
+
+(define putp
+    Obj Val Prop ->
+        (put Obj Prop Val))
+
+(define getp
+    Obj Prop ->
+        (get Obj Prop))
+
+
+

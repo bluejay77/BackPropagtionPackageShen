@@ -1,0 +1,124 @@
+\*
+
+The obarray, the ANN, etc etc definitions
+
+AJY 2018-05-15
+
+The list of all the neurons that are used, are in the obarray somewhat
+analogously to the MACLISP OBLIST
+
+All constants, global vars, etc to the document papers!!
+
+
+*\
+
+(datatype obarray
+_______________________________________
+(value *obarray*) : (vector pctron);
+)
+
+(do (set *MAXNEURONS* 500) []) \\ Max # of neurons, can be altered
+
+(do (set *obarray* (vector (value *MAXNEURONS*))) [])
+
+\\ No neuron @ this member of neuron vector, or, Empty elem of pctron
+\\ vector *obarray*:
+
+(datatype consts
+________________________________________
+(value *EMPTY*): sexp;
+________________________________________
+(value *NULL*): sexp;
+________________________________________
+(value *BIAS*): number;
+)
+
+(do (set *EMPTY* []) (set *NULL* []) [])
+
+(do (set *BIAS* 1.0) [])
+
+\\ In some texts, the bias is +1, in some other ones it is -1.
+\\ Here we have chosen +1.
+
+
+\\ Max number of inputs of a neuron.
+\\ Both max from the Samples, and the max inputs and the weights
+\\ from other neurons, and the max outputs of a neuron.
+
+(datatype consts2
+________________________________________
+(value *MAXVEC*): number;
+________________________________________
+(value *MAX*): number;
+)
+
+(do (set *MAXVEC* 20) [])
+
+(do (set *MAX* (+ 1 (value *MAXVEC*))) []) \\ One item for the *BIAS*
+
+\\ Fill the vector *obarray* with *MAX* times (value *EMPTY*)
+
+(define fill-obarray
+    { (vector pctron) --> number --> (vector pctron) }
+    Vector Counter -> Vector where (> Counter (value *MAX*))
+    Vector Counter ->
+        (do
+	    (vector-> Vector Counter (value *EMPTY*))
+	    (fill-obarray
+	        Vector
+		(+ 1 Counter))))
+
+(do (set *obarray* (fill-obarray (value *obarray*) 1)) [])
+
+
+\\ Individual neurons have an ID, which is an integer 1, ...,
+\\ (value *MAXNEURONS*).  It is the same as the neuron's index in the
+\\ vector *obarray*.
+
+(datatype consts3
+________________________________________
+(value *MAXLAYERS*): number;
+________________________________________
+(value *MAXINLAYER*): number;
+________________________________________
+(value *ANN*): (vector pctron);
+)
+
+
+(do (set *MAXLAYERS* 20) []) \\ Max number of neuron layers in the ANN
+
+(do (set *ANN* (vector (value *MAXLAYERS*))) [])
+
+(do (set *MAXINLAYER* 20) []) \\ Max number of neurons in a layer
+
+
+\\ Build a new empty neuron layer
+(define novel-empty-layer
+    -> (novel-empty-layer-h 1 (vector (value *MAXINLAYER*))))
+
+
+(define novel-empty-layer-h
+    Counter Vec -> Vec where (> Counter (value *MAXINLAYER*))
+    Counter Vec ->
+        (do
+	    (vector-> Vec Counter (value *EMPTY*))
+	    (novel-empty-layer-h (+ 1 Counter) Vec)))
+
+
+\\ Fill the vector *ANN* with *MAXLAYERS* of (novel-empty-layer) values
+(define fill-ann
+    { (vector (vector unit)) --> number --> (vector (vector unit)) }
+    Vector Counter -> Vector where (> Counter (value *MAXLAYERS*))
+    Vector Counter ->
+        (do
+	    (vector-> Vector Counter (novel-empty-layer))
+	    (fill-ann
+	        Vector
+		(+ 1 Counter))))
+
+(do (set *ANN* (fill-ann (value *ANN*) 1)) [])
+
+\\ The dummy neurons
+
+\\ The function (makann)
+

@@ -1,0 +1,25 @@
+
+\*
+
+AJY 2019-04-17
+
+The master file to load the backpropagation system
+
+This file is
+
+"c:\\users\\antti\\bp\\bp\\bp\\l.shen"
+
+*\
+
+(do
+  (load "c:\\users\\antti\\bp\\bp\\bp\\modulesys.shen")
+  (module.add-path "c:\\users\\antti\\bp\\bp\\bp\\")
+  (module.add-path "c:\\users\\antti\\bp\\bp\\bp\\maths-lib\\")
+  (use-modules ["maths-lib"])
+  (module.add-path "c:\\users\\antti\\bp\\bp\\bp\\bputp\\")
+  (use-modules ["bputp"])
+  (module.add-path "c:\\users\\antti\\bp\\bp\\bp\\obarray\\")
+  (use-modules ["obarray"])
+  [])
+
+

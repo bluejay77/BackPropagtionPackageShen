@@ -1,0 +1,114 @@
+\*
+
+The obarray, the ANN, etc etc definitions
+
+AJY 2018-05-15
+
+*\
+
+\*
+
+The Shen functions in this file:
+
+fill-inputs --- Fill the inputs vector of a pctron from a list
+
+fill-ins --- Fill the inputs vector of a pctron with empty values
+
+*\
+
+\\ The list of all the neurons that are used, are in the obarray
+\\ somewhat analogously to the MACLISP OBLIST
+
+(datatype obarray
+
+_______________________________________
+(value *obarray*) : (vector pctron);
+
+)
+
+(do (set *MAXNEURONS* 10) []) \\ Max # of neurons, can be altered
+
+(do (set *obarray* (vector (value *MAXNEURONS*))) [])
+
+(do (set *EMPTY-ELEM* []) []) \\ Empty elem of pctron vector
+
+(do (set *EMPTY* -9999999999) []) \\ No neuron at this member of vector
+
+(do (set *EMPTY-LAYER* []) []) \\ No neurons (yet) in this ANN layer
+
+
+\\ Fill the vector *obarray* with (value *EMPTY-ELEM*) values
+
+(define fill-obarray
+    { (vector pctron) --> number --> (vector pctron) }
+    Vector Counter -> Vector where (> Counter (value *MAXNEURONS*))
+    Vector Counter ->
+        (do
+	    (vector-> Vector Counter (value *EMPTY-ELEM*))
+	    (fill-obarray
+	        Vector
+		(+ 1 Counter))))
+
+
+(do (set *obarray* (fill-obarray (value *obarray*) 1)) [])
+
+
+\\ Individual neurons have an ID, which is an integer 1, ...,
+\\ (value *MAXNEURONS*).  It is the same as the neuron's index in the
+\\ vector *obarray*.
+
+(do (set *MAXNLAYERS* 10) []) \\ Max number of neuron layers in the ANN
+
+(do (set *ANN* (vector (value *MAXNLAYERS*))) [])
+
+
+\\ Fill the vector *ANN* with a number of (value *EMPTY-LAYER*) values
+
+(define fill-ann
+    { (vector boolean) --> number --> (vector boolean) }
+    Vector Counter -> Vector where (> Counter (value *MAXNLAYERS*))
+    Vector Counter ->
+        (do
+	    (vector-> Vector Counter (value *EMPTY-LAYER*))
+	    (fill-ann
+	        Vector
+		(+ 1 Counter))))
+
+(do (set *ANN* (fill-ann (value *ANN*) 1)) [])
+
+(do (set *MAXINPUTS* 20) [])
+
+(define fill-inputs
+    { (vector number) --> (list number) --> number --> (vector number) }
+    Vec Lst Counter -> Vec where (> Counter (value *MAXINPUTS*))
+    Vec Lst Counter -> Vec where (= Lst [])
+    Vec Lst Counter ->
+        (do
+	    (vector-> Vec (hd Lst) Counter)
+	    (fill-inputs
+	        Vec
+		(tl Lst)
+		(+ 1 Counter))))
+
+
+(define fill-ins
+    { (list number) --> (vector number) }
+    H ->
+        (let
+	    V (vector (value *MAXINPUTS*))
+	    V1 (fill-ins-empty-h V 1)
+	    (fill-ins-h
+	        V1 H 1)))
+
+
+
+(define fill-ins-empty-h
+    { (vector number) --> number --> (vector number) }
+    Vector Counter -> Vector where (> Counter (value *MAXINPUTS*))
+    Vector Counter ->
+        (do
+	    (vector-> Vector Counter (value *EMPTY*))
+	    (fill-ins-empty-h
+	        Vector
+		(+ 1 Counter))))
+

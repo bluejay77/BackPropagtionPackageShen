@@ -1,0 +1,24 @@
+Hello Mark---
+
+Here the time is 2344 PM, and I decided to show to you what I have
+done with the ANN work.
+
+I attach the backpropagation program as a set of source files.  Load
+them by giving
+
+(load "lbp.shen")
+
+to the Shen.  I decided not to use types.
+
+The:
+
+1 backpropagation; and,
+
+2 the Hopfield ANN (when used to solve NP problems); and,
+
+3 the SVM, the Support Vector Machine,
+
+are to my knowledge the real work horses of the ANN world.
+
+Then there are the Kohonen SOM, and some other ones.
+

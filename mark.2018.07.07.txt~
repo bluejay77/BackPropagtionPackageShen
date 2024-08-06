@@ -1,0 +1,27 @@
+Hi,
+
+I wanted to show the phase of the backpropagation software.
+
+The set of files will load.
+
+The data structures are OK, after a very significant amount of work.
+
+The neurons are Shen symbols.  Their fields are properties of symbols,
+implemented with the properties of the underlying LISP.  If the neuron
+symbol is e g *S*, you can do
+
+(getp *S* pdoc) \\ Documentation of neuron
+
+(getp *S* pouts) \\ Synapses output vector of the neuron *S*
+
+(getp *S* pnn) \\ Numeric ID
+
+etc.
+
+The user can show all the ANN training samples with
+
+(show-samples)
+
+I wrote a function (dsp) to show the samples and the corresponding
+output ANN layer.
+

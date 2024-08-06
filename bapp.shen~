@@ -1,0 +1,134 @@
+
+\*
+
+AJY 2018-06-23
+
+Application data for the backpropagation algorithm
+
+The author has intended this one to be used as follows.
+
+The backpropagation program can be created as a binary file with some
+Shen capabilities, to make a binary image out of a program:
+
+==================================================
+
+;;; AJY 2017-04-10
+;;;
+;;; Usage:
+;;;
+;;; Start Shen
+;;; With Shen:
+;;;
+;;; (lisp.load "save-shen.lisp")
+;;; (save-shen "myprog.exe")
+;;;
+;;; Then:
+;;; In the Linux:
+;;; $ ./myprog.exe
+;;;
+
+
+(DEFUN save-shen (Pathname)
+  (SB-EXT:SAVE-LISP-AND-DIE
+   Pathname
+   :EXECUTABLE T))
+
+==================================================
+
+and:
+
+==================================================
+
+;;; AJY 2017-04-11
+;;;
+;;; Pathname eg. myexefile.exe
+
+
+(DEFUN save-shen (Pathname)
+  (SB-EXT:SAVE-LISP-AND-DIE
+   Pathname
+   :EXECUTABLE T
+   :TOPLEVEL 'SHEN-TOPLEVEL))
+
+==================================================
+
+The software here, can be given to the user as a binary image, and the
+user then will write this file, with the training data, and the ANN
+neurons.
+
+
+*\
+
+
+
+\\ This comes from (Winston, 1992), Table 1. on Page 460
+
+
+(record-samples
+    [ [ [ 1 1 0 0 0 0 ] [0 1] ]
+      [ [ 1 0 1 0 0 0 ] [0 1] ]
+      [ [ 1 0 0 1 0 0 ] [1 0] ]
+      [ [ 1 0 0 0 1 0 ] [1 0] ]
+      [ [ 1 0 0 0 0 1 ] [1 0] ]
+      [ [ 0 1 1 0 0 0 ] [0 1] ]
+      [ [ 0 1 0 1 0 0 ] [1 0] ]
+      [ [ 0 1 0 0 1 0 ] [1 0] ]
+      [ [ 0 1 0 0 0 1 ] [1 0] ]
+      [ [ 0 0 1 1 0 0 ] [1 0] ]
+      [ [ 0 0 1 0 1 0 ] [1 0] ]
+      [ [ 0 0 1 0 0 1 ] [1 0] ]
+      [ [ 0 0 0 1 1 0 ] [0 1] ]
+      [ [ 0 0 0 1 0 1 ] [0 1] ]
+      [ [ 0 0 0 0 1 1 ] [0 1] ] ]
+      )
+
+
+\\ Create the neurons in the ANN in (Winston, 1992) from Figure 22.10
+\\ on Page 463:
+
+
+\\ The bias of the neuron, which identically =df 1.0, is handled
+\\ separately.  It has a trainable weight.
+
+(do
+      (defneuron *H1* 1 
+	"H1, Winston, 1992"
+	1 \\ Layer #1
+	1 \\ Position 1
+        [[-1 0.1 ] [-2 0.1 ] [-3 0.1 ]] \\ Inputs from training samples
+        [[1 (random-weight)] [2 (random-weight)] [3 (random-weight)]]
+	(random-weight) \\ Weight of the bias
+        [3 4])
+
+
+      (defneuron *H2* 2
+	"Neuron H2, Winston, 1992"
+	1 \\ Layer #1
+	2 \\ Position 2
+        [[-4 0.2 ] [-5 0.2 ] [-6 0.2 ]] \\ From Samples
+        [[4 (random-weight)] [5 (random-weight)] [6 (random-weight)]]
+	(random-weight) \\ Weight of the bias
+        [3 4])
+
+      (defneuron *A* 3
+	"Neuron A, Winston, 1992"
+	2 \\ Layer #2
+	1 \\ Position 1
+        [[1 0.3 ] [2 0.3 ]] \\ Inputs from other neurons
+        [[1 (random-weight)] [2 (random-weight)]]
+	(random-weight) \\ Weight of the bias
+        [-1]) \\ Output neuron #1 of entire net
+
+
+      (defneuron *S* 4
+	"Neuron S, Winston, 1992"
+	2 \\ Layer #2
+	2 \\ Position 2
+        [[1 0.4 ] [2 0.4 ]] \\ Inputs from other neurons
+        [[1 (random-weight)] [2 (random-weight)]]
+	(random-weight) \\ Weight of the bias
+        [-2]) \\ Output neuron #2 of entire net
+
+[] ) \\ end the (do...) form
+
+

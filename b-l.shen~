@@ -1,0 +1,108 @@
+\*
+
+Dr AJY 2018-01-03
+
+*\
+
+\\ See (Winston, 1992) on Page 457:
+\\
+\\ beta(j) = Sigma[over all k] w(j,k) * o(k) * (1 - o(k)) * beta(k)
+\\
+\\ where
+\\ Neuron #j is an input neuron of Neuron #k
+\\ beta(j) =df the beta value for the Neuron #j
+\\ w(j,k)  =df the weight from the Neuron #j to the Neuron #k
+\\         =df the w(j-->k) in the Winston formula
+\\         =df the Weight of the Input #j of the Neuron #k
+\\ o(k)    =df the actual output of the Neuron #k
+\\ beta(k) =df the beta for the Neuron #k
+\\
+
+
+(define beta-layers
+    ->
+        (let
+	    N1 (- (value *last-layer*) 1) \\ all except the upmost one
+	    Ign (beta-layers-h N1) \\ Iterate backwards #N1 --> #1
+	    []))
+
+
+(define beta-layers-h
+    N1 -> [] where (< N1 1)
+    N1 ->
+        (let
+	    J N1
+	    Stratum (<-vector (value *ANN*) J) \\ the lower stratum, #j above
+	    Ign (beta-stratum-h Stratum 1) \\ the algorithm for the Stratum #j
+	    \\ NOTA BENE the beta values of Stratum #J + 1 are filled
+	    Ign (beta-layers-h (- J 1))
+	    []))
+
+
+\\ There are two neuron strata in question:
+\\ The argument Stratum, is the lower one of them two, #j, J above
+\\ Its following, next, upper stratum is Layer #k, K.
+
+
+(define beta-stratum-h
+    S Indx -> [] where (> Indx (value *MAXINLAYER*))
+    S Indx -> (beta-stratum-h S (+ 1 Indx)) where
+                  (= (<-vector S Indx)
+		     (value *EMPTY*)) \\ Empty slot?
+    S Indx ->
+        (do
+	    (beta-neuron (<-vector S Indx))
+	    (beta-stratum-h S (+ 1 Indx))
+	    []))
+
+
+\\ N is the Neuron #j, its outputs are Neurons #k
+
+(define beta-neuron
+    N ->
+        (let
+	    OVec (getp N pouts) \\ vector of IDs, of Neurons #k
+	    B (beta-sum N OVec 1 0) \\ N is Neuron #j, OVec are #k IDs
+	    Ign (putp N B pb)   \\ Update neuron data structure => beta
+	    []))
+
+
+\\ See (Winston, 1992), the formulas on Page 457:
+\\
+\\ beta(j) = Sigma[over all k] w(j,k) * o(k) * (1 - o(k)) * beta(k)
+\\
+\\ where
+\\ beta(j) =df the beta value for the Neuron #j
+\\ w(j,k)  =df the weight from the Neuron #j to the Neuron #k
+\\         =df the w(j-->k) in the Winston formula
+\\         =df the Weight of the Input #j of the Neuron #k
+\\ o(k)    =df the actual output of the Neuron #k
+\\ beta(k) =df the beta for the Neuron #k
+\\
+\\ N is Neuron #j, OL its output #k list
+
+\\ Iterate over the outputs of #j == the neurons #k
+
+
+(define beta-sum
+    N OVec K Sum -> Sum
+        where (> K (value *MAXINLAYER*)) \\ All neurons handled?
+    N OVec K Sum ->
+        (beta-sum N OVec (+ K 1 )Sum)
+	    where (= (<-vector OVec K)
+	             (value *EMPTY*)) \\ No neuron
+    N OVec K Sum ->
+        (let
+	    ON (<-vector (value *obarray*) K) \\ Output neuron, #k, P. 457
+	    \\ Find from the output neuron, #k, the weight corresponding to
+	    \\ the #j ==> #k -- feeding neuron #j
+	    Wj-k (<-vector (getp ON pwts-n) (getp N pnn)) \\ weight j -> k
+	    Ok (getp ON pout) \\ o(k), Page 457
+	    B-k (getp ON pb) \\ beta(k), Page 457
+	    S (* Wj-k Ok (- 1 Ok) B-k)
+	    (beta-sum N OVec (+ 1 K) (+ Sum S))))
+
+
+
+
+

@@ -1,0 +1,314 @@
+\*
+
+The defneuron functionality
+
+Dr AJY 2018-01-17
+
+
+
+The artificial neuron, the perceptron.
+
+The input vector may come from the samples, or come from other
+neurons.  In the both cases the IDs are stored into the vector
+pins.  Whenever necessary, the input numbers are copied from the
+*Samples* input numbers list into the neurons' pins-n vectors
+(see below).  The pins-n contain the numeric values.
+
+The indices in the vector pins are negative, if the inputs are from
+the training samples, otherwise they are positive.
+
+The ANN neurons are symbols.  Their fields have been stored into the
+properties of the symbols, with the (putp...) and (getp...) Shen
+functions.
+
+If the neuron is *A*, then its pnn field (the neuron number) is set:
+
+(putp *A* 5 pnn)
+
+and the neuron output numeric value is retrieved:
+
+(getp *A* pout)
+
+Neurons have two names: the symbol name as above, and the numeric ID.
+The pnn property of the symbol is the ID.
+The IDth member of the obarray is the symbol name.
+
+*\
+
+\\ Conventions as to the values of the components of the perceptron
+\\ defstruct:
+\\
+\\ 1. When the input of the neuron comes from the samples, and not
+\\ from another neuron, then the input # in the defneuron function
+\\ is negative.
+\\
+\\ If the the input of the neuron comes from other neurons, the
+\\ input ID # is positive.
+\\
+\\ The weight ID #s are always positive integer IDs.
+\\
+\\ 2.  If the output of the neuron is the output of the entire
+\\ ANN network, then the output value is negative in the pouts field.
+\\
+\\ Otherwise, the output ID #s are positive integers.
+\\
+\\ 3. If the place (element) of a vector at place #L is empty, the
+\\ value of the vector[L] is (value *EMPTY*)
+
+
+\\ Make an empty-vector
+\\ *MAX* == 1 + *MAXVEC* values, of (value *EMPTY*)
+
+(define fill-empty-vector
+    { (vector number) --> number --> (vector number) }
+    Vector Counter -> Vector where (> Counter (value *MAX*))
+    Vector Counter ->
+        (do
+	    (vector-> Vector Counter (value *EMPTY*))
+	    (fill-empty-vector
+	        Vector
+		(+ 1 Counter))))
+
+
+(define novel-empty-vector
+    { --> (vector number) }
+    ->
+        (let
+	    EMPTY-VECTOR (vector (value *MAX*)) \\ New vector
+           (fill-empty-vector EMPTY-VECTOR 1)))
+
+
+\\ Make a 0 -vector
+\\ *MAX* == 1 + *MAXVEC* values, of == 0
+
+(define fill-zero-vector
+    { (vector number) --> number --> (vector number) }
+    Vector Counter -> Vector where (> Counter (value *MAX*))
+    Vector Counter ->
+        (do
+	    (vector-> Vector Counter 0)
+	    (fill-zero-vector
+	        Vector
+		(+ 1 Counter))))
+
+
+(define novel-zero-vector
+    { --> (vector number) }
+    ->
+        (let
+	    Z-VECTOR (vector (value *MAXVEC*)) \\ Novel vector
+	    (fill-zero-vector Z-VECTOR 1)))
+
+
+\*
+
+Central function: define an ANN neuron
+
+Neurons have two names: the symbol name, and the numeric ID.
+
+
+Examples: A neuron with input from the samples
+
+(defneuron *H1*
+    1 "H1, Winston, 1992"
+    1 \\ Layer #1
+    1 \\ Position #1 in Layer #1
+    [ [-1 0 ] [-2 0 ] [-3 0 ] ] \\ Negative #s, values from training data
+    [ [1 (random-weight)] [2 (random-weight)] [3 (random-weight)] ]
+    (random-weight) \\ Weight of the bias
+    [3 4]) \\ Two output neurons, outputs into neurons #3 and #4
+
+
+ A neuron with the inputs from other neurons, and the output
+   is the output of the entire ANN:
+
+(defneuron *A*
+    3 "Neuron A, Winston, 1992"
+    2 \\ Layer #2
+    1 \\ Position #1 in Layer #2
+    [ [ 1 0 ] [2 0 ] ] \\ Two inputs: Their values come from other neurons
+    [[1 (random-weight)] [2 (random-weight)]]
+    (random-weight) \\ Weight of the bias
+    [-1]) \\ Negative: This is an ANN output neuron, output #1
+
+The author has inteded that one layer of the ANN is the output layer.
+
+Successive calls of the (defneuron ...) function add neurons into the
+layers.
+
+The intention is that the output values in the *Samples* output lists,
+are in the selfsame order as the neurons in the last, output layer.
+
+Exemplaris gratis:
+
+One sample sublist is:
+
+[ [ 1 0 1 0 0 0 ] [0 1] ]
+
+its inputs are:
+
+ [ 1 0 1 0 0 0 ]
+
+its outputs list are:
+
+ [0 1]
+
+And the (defneuron ...) function is called for the output layer twice,
+(the output layer is Layer #10)
+
+(defneuron 7 10 1 ...)
+(defneuron 8 10 2 ...)
+
+Then the output value 0 above corresponds to the Neuron #7, (position
+1), and the output value 1 above corresponds to the Neuron #8
+(position 2).
+
+*\
+
+(datatype net-limits
+
+______________________________
+(value *first-layer*) : number;
+
+______________________________
+(value *last-layer*) : number;
+
+)
+
+
+(define defneuron
+    NeuronName
+    ID
+    Doc
+    Layer
+    Pos
+    INP
+    WTS
+    Bias
+    OUT ->
+    (let
+	Ign (putp NeuronName ID pnn)
+	Ign (putp NeuronName Doc pdoc)
+	Ign (putp NeuronName Layer pnlayer)
+	Ign (putp NeuronName Pos pnpos)
+	Ign (putp NeuronName (novel-empty-vector) pins) \\ Place holder
+	Ign (putp NeuronName (novel-zero-vector) pins-n) \\ Place holder
+	Ign (putp NeuronName (novel-empty-vector) pwts) \\ Place holder
+	Ign (putp NeuronName (novel-zero-vector) pwts-n) \\ Place holder
+	Ign (putp NeuronName (novel-zero-vector) pdel) \\ For Deltas
+	Ign (putp NeuronName (novel-zero-vector) pdel-n-p) \\ Place holder
+	Ign (putp NeuronName 0 pact) \\ dummy for activation level
+	Ign (putp NeuronName 0 pout) \\ dummy for output number
+	Ign (putp NeuronName 0 pb) \\ dummy for beta
+	Ign (putp NeuronName (novel-empty-vector) pouts) \\ Place holder
+	Ign  (fill-x INP NeuronName) \\ Fill sample or input IDs,
+	     \\ Into the vector pins
+        Ign  (fill-y WTS NeuronName Bias) \\ Fill initial weight values,
+	     \\ Into the vector pwts
+	Ign  (fill-z OUT NeuronName) \\ Fill outputs vector,
+	     \\ Into the vector pouts
+	\\ Add the neuron into the *obarray*:
+	Ign  (vector-> (value *obarray*) ID NeuronName)
+	\\ Add the neuron into the actual ANN network
+	L (<-vector (value *ANN*) Layer) \\ Get layer
+	Ign (vector-> L Pos NeuronName)  \\ Place neuron
+	Ign (vector-> (value *ANN*) Layer L) \\ Updated layer
+	Ign (set *first-layer* 1)
+	Ign (if (> 0 (hd OUT)) \\ Output layer?
+	        (set *last-layer* Layer)
+	        [])
+	NeuronName)) \\ Return the ready neuron symbol name
+
+
+\\ Fill in the inputs' IDs from the list ILst
+\\ And the input numbers.  The last one is the bias ==df (value *BIAS*)
+
+(define fill-x
+    [] NeuronName -> (let
+			 INPN (getp NeuronName pins-n)
+			 Ign (vector-> INPN (value *MAX*) (value *BIAS*))
+			 IDX (getp NeuronName pins)
+			 Ign (vector-> IDX (value *MAX*) (value *MAX*))
+			 [])
+    ILst NeuronName ->
+        (let
+	    I-V (hd ILst) \\ next [ input value ] pair
+	    V (getp NeuronName pins) \\ Get the inputs vector
+	    V-N (getp NeuronName pins-n) \\ Get the inputs numbers
+	    Ig (vector-> V (abs (hd I-V)) \\ update the ID
+	                   (hd I-V))
+	    Ig (putp NeuronName V pins) \\ Assign vector back into the neuron
+	    Ig (vector-> V-N (abs (hd I-V)) \\ update the value
+	                     (hd (tl I-V)))
+	    Ig (putp NeuronName V-N pins-n) 
+	    (fill-x (tl ILst) NeuronName))) \\ and, recurse
+
+
+\\ Fill the initial weights into the vectors (repeat code.....)
+\\ And the weights.  The last one is the weight of the bias
+
+(define fill-y
+    [] NeuronName Bias ->  (let
+			 WTN (getp NeuronName pwts-n)
+			 Ign (vector-> WTN (value *MAX*) Bias)
+			 IDX (getp NeuronName pwts)
+			 Ign (vector-> IDX (value *MAX*) (value *MAX*))
+			 [])
+		
+    ILst NeuronName Bias ->
+        (let
+	    I-V (hd ILst)
+	    V (getp NeuronName pwts) \\ Get the weights vector
+	    Ig (vector-> V (hd I-V) \\ update the weight
+	                   (hd I-V))
+	    V-N (getp NeuronName pwts-n) \\ Get the weights vector
+	    Ig (vector-> V-N (hd I-V) \\ update the weight
+	                     (hd (tl I-V)))
+	    Ig (putp NeuronName V pwts) \\ Assign vector back into the neuron
+	    Ig (putp NeuronName V-N pwts-n)
+	    (fill-y (tl ILst) NeuronName))) \\ and, recurse
+
+
+\\ Fill the initial output neuron IDs into the vector
+
+(define fill-z
+    [] NeuronName -> []
+    ILst NeuronName ->
+        (let
+	    O (hd ILst)
+	    V (getp NeuronName pouts) \\ Get the outputs vector
+	    Ig (vector-> V (abs O) \\ update the output ID
+	                   O) \\ May be + or -
+	    Ig (putp NeuronName V pouts) \\ Assign vector back into the neuron
+	    (fill-z (tl ILst) NeuronName))) \\ recurse
+
+
+
+\\ The Winston training parameter r has been stored in the global
+\\ variable *r*.
+
+
+(datatype params
+
+___________________________
+(value *r*) : number;
+
+___________________________
+(value *a*) : number;
+
+___________________________
+(value *alpha*) : number; \\ The (Haykin, 1999) p. 170 momentum constant
+
+)
+
+
+
+
+(set *r* 0.2) \\ Can be changed as the algorithm runs, see Winston
+
+(set *a* 2.0) \\ The error backpropagation threshold function
+              \\ parameter a, (Haykin, 1999) p. 168
+
+(set *alpha* 0.1) \\ Momentum constant alpha, see (Haykin, 1999)
+
+

@@ -1,0 +1,7 @@
+
+;;; This is because the input layer and the hidden layer each have
+;;; a "dummy unit" whose activation is always 1, which feeds the units
+;;; of the next layer in lieu of their having a "threshold" or "bias".
+;;; The weights for the threshold links are learned just like all
+;;; the others.
+

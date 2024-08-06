@@ -1,0 +1,43 @@
+
+---Algorithm:
+
+(Haykin, 1999) pp. 173--175.
+
+Phase 1.  Initialization.
+
+Pick synaptic weights and thresholds from a uniform distribution,
+whose mean == 0, and whose variance is given as a function parameter.
+See (Haykin, 1999) p. 174.
+
+Iterate UNTIL (stopping criterion):
+
+    Phase 2.  Present (assign) the training examples.  For this epoch.
+
+    Phase 3.  Forward computation.  Self explanatory.
+
+    Phase 4.  Backward Computation.  Compute the betas, deltas, sumDeltas.
+
+END UNTIL
+
+The order of presentation of training examples should be randomized
+from epoch to epoch.
+
+Four epoch iteration stopping criteria:
+
+1.  Number of epochs given, e. g. (bprop 200)
+
+2.  (Winston, 1992) <0.1 or >0.9 criterion, e. g. (cbprop)
+
+3.  (Haykin, 1999) p. 173 criterion -- Euclidean norm of the gradient
+of the error surface is sufficiently small, and is given as a function
+argument (h1bprop 0.01)
+
+4.  (Haykin, 1999) p. 173 criterion 2: absolute rate of change in the
+average squared error per epoch is sufficiently small, is given as a
+function parameter, (h2bprop 0.001)
+
+Use the sequential mode: Update the weights after the presentation of
+each training example.  (Haykin, 1999) p. 171-172.
+
+Apply the (Anastasiadis, 2005) resilient backpropagation algorithm.
+

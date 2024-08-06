@@ -1,0 +1,51 @@
+
+Print every one individually after fixing
+
+Into a file
+
+
+
+
+maths-lib   OK 2019-10-29    Will I get a newer version of the mathslib?
+
+bputp   OK 2019-10-29   No changes
+
+obarray
+
+abstract
+
+random
+
+random-weight
+
+record
+
+defneuron
+
+aux1
+
+xfer
+
+for-all
+
+zero
+
+train
+
+assign
+
+launch
+
+b-out
+
+b-1
+
+d-1
+
+d-n
+
+change
+
+\\ Load the application data
+load ".\\bapp.shen" 
+

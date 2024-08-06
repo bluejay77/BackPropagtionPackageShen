@@ -1,0 +1,25 @@
+
+\*
+
+This file is "c:\\users\\antti\\bp\\bp\\bp\\random-weights\\module.shen"
+
+*\
+
+
+(register-module [[name: random-weights]
+                  [author: "Dr Antti J Ylikoski"]
+                  [license: "commercial"]
+                  [desc: "Random initial weights"]
+                  [load-fn: random-weights-load]
+                  [translate: "random-weights.shen"]])
+
+
+
+(define random-weights-load
+  {X --> boolean}
+  _ -> (do (load/tc - "random-weights.shen")
+           ))
+
+
+
+

@@ -1,0 +1,85 @@
+Hello Mark:
+
+I sketched a document of the many modern ANN models.
+
+I hope that you and your customers will find it interesting.
+
+
+
+
+==================================================
+
+Feed Forward Multilayer Perceptron
+
+https://en.wikipedia.org/wiki/Multilayer_perceptron
+
+==================================================
+
+Competing layer 
+
+https://cs.stanford.edu/people/eroberts/courses/soco/projects/neural-networks/Architecture/competitive.html
+
+==================================================
+
+Single Layer Perceptron
+
+(This is trivial.)
+
+==================================================
+
+Radial Basis Networks
+
+https://en.wikipedia.org/wiki/Radial_basis_function_network
+
+https://en.wikipedia.org/wiki/Radial_basis_function
+
+==================================================
+
+Learning Vector Quantization
+
+http://www.cs.bham.ac.uk/~jxb/NN/l18.pdf
+
+==================================================
+
+Elman Recurrent network
+
+https://en.wikipedia.org/wiki/Recurrent_neural_network#Elman_networks_and_Jordan_networks
+
+http://mnemstudio.org/neural-networks-elman.htm
+
+==================================================
+
+Hopfield Recurrent network
+
+https://en.wikipedia.org/wiki/Hopfield_network
+
+==================================================
+
+Hemming Recurrent network
+
+https://cs.stanford.edu/people/eroberts/courses/soco/projects/neural-networks/Architecture/competitive.html
+
+==================================================
+
+Kohonen SOM
+
+https://en.wikipedia.org/wiki/Self-organizing_map
+
+==================================================
+
+Support Vector Machines (SVM)
+
+https://en.wikipedia.org/wiki/Support_vector_machine
+
+==================================================
+
+
+You can see how novel the entire field is.  The task I took for myself
+has been very very difficult, but rewarding, and I have liked this
+work.
+
+
+
+yours, AJY
+Helsinki, Finland, the EU
+
